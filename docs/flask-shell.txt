@@ -1,4 +1,4 @@
-🟨 CELL 3 — CART + ORDER SERVICE (Cart, Orders, Order Items)
+🟨 PROJECT 3 — CART + ORDER SERVICE (Cart, Orders, Order Items)
 # =====================================================
 # CART + ORDER SERVICE – DATABASE INSPECTION (FLASK SHELL)
 # =====================================================
