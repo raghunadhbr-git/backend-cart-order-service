@@ -1,0 +1,8 @@
+🚀 Next (tell me which one)
+
+1️⃣ Add unit + integration tests for cart / checkout / orders
+2️⃣ Fix Neon migration mismatch cleanly
+3️⃣ Add GitHub Actions CI for this service
+4️⃣ Move to ml-events-service tests
+
+Just reply with the number 👌

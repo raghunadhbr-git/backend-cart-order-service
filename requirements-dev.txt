@@ -1,0 +1,5 @@
+pytest
+pytest-flask
+pytest-cov
+factory-boy
+freezegun
