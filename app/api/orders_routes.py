@@ -8,13 +8,21 @@ from app.extensions import db
 
 orders_bp = Blueprint("orders", __name__)
 
+PRODUCT_RESTORE_URL = (
+    "https://backend-product-service.onrender.com/api/v1/products/restore-stock"
+)
+
 ML_EVENTS_URL = "https://backend-ml-events-service.onrender.com/api/events"
 
 
+# ============================================================
+# GET MY ORDERS
+# ============================================================
 @orders_bp.get("/")
 @jwt_required()
 def get_my_orders():
     user_id = int(get_jwt_identity())
+
     orders = Order.query.filter_by(user_id=user_id).order_by(
         Order.created_at.desc()
     ).all()
@@ -30,6 +38,9 @@ def get_my_orders():
     ]), 200
 
 
+# ============================================================
+# GET ORDER DETAILS
+# ============================================================
 @orders_bp.get("/<int:order_id>")
 @jwt_required()
 def get_order_details(order_id):
@@ -48,6 +59,7 @@ def get_order_details(order_id):
         "items": [
             {
                 "product_id": i.product_id,
+                "variant_id": i.variant_id,
                 "name": i.name,
                 "price": i.price,
                 "quantity": i.quantity,
@@ -58,6 +70,9 @@ def get_order_details(order_id):
     }), 200
 
 
+# ============================================================
+# ❌ CANCEL ORDER → RESTORE STOCK
+# ============================================================
 @orders_bp.patch("/<int:order_id>/cancel")
 @jwt_required()
 def cancel_order(order_id):
@@ -69,6 +84,26 @@ def cancel_order(order_id):
 
     if order.status != "placed":
         return jsonify({"error": "Order cannot be cancelled"}), 400
+
+    items = OrderItem.query.filter_by(order_id=order.id).all()
+
+    restore_payload = {
+        "items": [
+            {
+                "product_id": i.product_id,
+                "variant_id": i.variant_id,
+                "quantity": i.quantity
+            }
+            for i in items
+        ]
+    }
+
+    # 🔥 RESTORE STOCK
+    requests.post(
+        PRODUCT_RESTORE_URL,
+        json=restore_payload,
+        headers={"Authorization": request.headers.get("Authorization")}
+    )
 
     order.status = "cancelled"
     db.session.commit()
@@ -83,7 +118,49 @@ def cancel_order(order_id):
         }
     )
 
-    return jsonify({"message": "Order cancelled"}), 200
+    return jsonify({"message": "Order cancelled & stock restored"}), 200
+
+
+# ============================================================
+# 🔁 RETURN ORDER → RESTORE STOCK
+# ============================================================
+@orders_bp.patch("/<int:order_id>/return")
+@jwt_required()
+def return_order(order_id):
+    user_id = int(get_jwt_identity())
+
+    order = Order.query.filter_by(id=order_id, user_id=user_id).first()
+    if not order:
+        return jsonify({"error": "Order not found"}), 404
+
+    if order.status != "delivered":
+        return jsonify({"error": "Only delivered orders can be returned"}), 400
+
+    items = OrderItem.query.filter_by(order_id=order.id).all()
+
+    restore_payload = {
+        "items": [
+            {
+                "product_id": i.product_id,
+                "variant_id": i.variant_id,
+                "quantity": i.quantity
+            }
+            for i in items
+        ]
+    }
+
+    # 🔥 RESTORE STOCK
+    requests.post(
+        PRODUCT_RESTORE_URL,
+        json=restore_payload,
+        headers={"Authorization": request.headers.get("Authorization")}
+    )
+
+    order.status = "returned"
+    db.session.commit()
+
+    return jsonify({"message": "Order returned & stock restored"}), 200
+
 
 # NOTE:
 # Cancel endpoint stays same for now.
