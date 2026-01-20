@@ -15,6 +15,8 @@ def add_to_cart():
     item = CartItem(
         user_id=user_id,
         product_id=data["productId"],
+        variant_id=data["variantId"],   # 🔥 REQUIRED
+        color=data["color"],             # 🔥 REQUIRED
         name=data["name"],
         price=data["price"],
         quantity=data["quantity"],
@@ -38,6 +40,8 @@ def get_cart():
         {
             "id": item.id,
             "productId": item.product_id,
+            "variantId": item.variant_id,
+            "color": item.color,
             "name": item.name,
             "price": item.price,
             "quantity": item.quantity,

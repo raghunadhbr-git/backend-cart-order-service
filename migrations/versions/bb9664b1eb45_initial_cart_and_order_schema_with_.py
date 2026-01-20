@@ -1,8 +1,8 @@
-"""orders flow v1
+"""initial cart and order schema with variants
 
-Revision ID: 7302da9a1362
+Revision ID: bb9664b1eb45
 Revises: 
-Create Date: 2026-01-10 21:14:22.056488
+Create Date: 2026-01-20 16:04:26.845567
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '7302da9a1362'
+revision = 'bb9664b1eb45'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -22,6 +22,8 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('product_id', sa.Integer(), nullable=False),
+    sa.Column('variant_id', sa.Integer(), nullable=False),
+    sa.Column('color', sa.String(length=50), nullable=False),
     sa.Column('name', sa.String(length=200), nullable=False),
     sa.Column('price', sa.Float(), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=False),
@@ -33,6 +35,8 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('order_id', sa.Integer(), nullable=False),
     sa.Column('product_id', sa.Integer(), nullable=False),
+    sa.Column('variant_id', sa.Integer(), nullable=False),
+    sa.Column('color', sa.String(length=50), nullable=False),
     sa.Column('name', sa.String(length=200), nullable=False),
     sa.Column('price', sa.Float(), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=False),

@@ -1,0 +1,51 @@
+================================
+CART / ORDER SERVICE – FLASK SHELL VERIFY
+================================
+
+STEP 1: Go to project root
+--------------------------------
+cd E:\ecommerce-platform\backend-cart-order-service
+
+
+STEP 2: Activate virtual environment
+--------------------------------
+.\venv\Scripts\activate
+
+
+# STEP 3: Set Flask app (Windows PowerShell)
+$env:FLASK_APP = "run.py"
+
+
+# STEP 4: Open Flask shell
+flask shell
+
+
+================================
+INSIDE FLASK SHELL (>>>)
+================================
+
+from app.models.cart_item import CartItem
+from app.models.order import Order
+from app.models.order_item import OrderItem
+
+print("---- CART ITEM COLUMNS ----")
+print(CartItem.__table__.columns.keys())
+
+print("---- ORDER ITEM COLUMNS ----")
+print(OrderItem.__table__.columns.keys())
+
+print("---- ORDER COLUMNS ----")
+print(Order.__table__.columns.keys())
+
+print("CartItem count:", CartItem.query.count())
+print("Order count:", Order.query.count())
+print("OrderItem count:", OrderItem.query.count())
+
+
+# STEP 5: Exit Flask shell
+exit()
+
+
+================================
+END
+================================

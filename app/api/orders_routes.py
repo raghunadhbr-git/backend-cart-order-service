@@ -84,3 +84,9 @@ def cancel_order(order_id):
     )
 
     return jsonify({"message": "Order cancelled"}), 200
+
+# NOTE:
+# Cancel endpoint stays same for now.
+# Stock restore logic will be added AFTER Product Service supports increase-stock.
+# No breaking changes here yet.
+# This is to avoid complications during the ongoing variant/color feature rollout.

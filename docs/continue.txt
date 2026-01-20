@@ -1,0 +1,15 @@
+🚦 WHAT WE DO NEXT (STRICT ORDER — AS YOU REQUESTED)
+We now move only in this sequence:
+1️⃣ Test ADD TO CART
+•	Single API call
+•	Verify DB insert
+•	Verify variant_id + color stored
+2️⃣ Test CHECKOUT
+•	Order created
+•	Cart cleared
+•	Product variant stock reduced
+3️⃣ Wire CANCEL → STOCK RESTORE
+•	Add increase-stock endpoint
+•	Call it from cancel flow
+•	Prevent double-restore
+

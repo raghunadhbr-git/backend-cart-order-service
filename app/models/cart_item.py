@@ -10,6 +10,9 @@ class CartItem(db.Model):
     user_id = db.Column(db.Integer, nullable=False)
 
     product_id = db.Column(db.Integer, nullable=False)
+    variant_id = db.Column(db.Integer, nullable=False)  # 🔥 NEW
+    color = db.Column(db.String(50), nullable=False)     # 🔥 NEW
+
     name = db.Column(db.String(200), nullable=False)
     price = db.Column(db.Float, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
@@ -18,4 +21,4 @@ class CartItem(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"<CartItem user={self.user_id} product={self.product_id}>"
+        return f"<CartItem user={self.user_id} variant={self.variant_id}>"
