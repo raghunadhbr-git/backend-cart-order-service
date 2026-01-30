@@ -1,0 +1,87 @@
+FLASK MIGRATION RECOVERY – CLEAN & SAFE FLOW
+==========================================
+
+Use this when:
+- You deleted migrations locally
+- Git pull is blocked OR migrations missing
+- You want latest migrations from repo
+- You do NOT want to create new migrations
+
+------------------------------------------
+STEP 1: (Optional) Delete local state
+------------------------------------------
+
+# PowerShell
+Remove-Item -Recurse -Force .\migrations
+Remove-Item -Recurse -Force .\instance
+
+# Verify deletion (PowerShell)
+Test-Path .\migrations   # should be False
+Test-Path .\instance     # should be False
+
+------------------------------------------
+STEP 2: Force restore migrations from Git
+------------------------------------------
+
+# Git Bash / PowerShell
+git fetch origin
+git checkout origin/main -- migrations
+
+# Alternative (newer git)
+git restore --source=origin/main -- migrations
+
+------------------------------------------
+STEP 3: Verify repo state
+------------------------------------------
+
+ls migrations
+git status
+
+# Expected:
+# - migrations/versions exists
+# - working tree clean
+
+------------------------------------------
+STEP 4: Apply migrations to database
+------------------------------------------
+
+flask db upgrade
+
+------------------------------------------
+STEP 5: Verify migration state (optional)
+------------------------------------------
+
+flask db current
+flask db history
+
+# Expected:
+# - current shows (head)
+# - history matches repo versions
+
+------------------------------------------
+STEP 6: Run service
+------------------------------------------
+
+# Activate virtualenv (Windows)
+.\venv\Scripts\activate
+
+# Run Flask app (change port as needed)
+flask run --port 5001
+
+------------------------------------------
+IMPORTANT RULES (DO NOT BREAK)
+------------------------------------------
+
+❌ Do NOT run:
+- flask db init
+- flask db migrate
+
+(Unless you are intentionally creating NEW migrations)
+
+✅ Use this flow ONLY for syncing DB with repo migrations
+
+------------------------------------------
+ONE-LINE SUMMARY
+------------------------------------------
+
+Delete locally → restore from origin → flask db upgrade
