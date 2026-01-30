@@ -126,6 +126,10 @@ REM --- CANCEL ORDER ---
 curl -X PATCH %CART_BASE_URL%/api/orders/%ORDER_ID%/cancel ^
 -H "Authorization: Bearer %CUSTOMER_TOKEN%"
 
+curl -X PATCH %CART_BASE_URL%/api/orders/1/cancel ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+
 REM ============================================================
 REM FINAL STOCK VERIFY (SHOULD BE 10)
 REM ============================================================

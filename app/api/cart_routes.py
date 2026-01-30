@@ -1,60 +1,52 @@
 ﻿from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.extensions import db
-from app.models.cart_item import CartItem
+from ..extensions import db
+from ..models.cart import CartItem
 
 cart_bp = Blueprint("cart", __name__)
 
-
+# ============================================================
+# ADD TO CART
+# ============================================================
 @cart_bp.post("/")
 @jwt_required()
 def add_to_cart():
+    user_id = get_jwt_identity()
     data = request.get_json()
-    user_id = int(get_jwt_identity())
 
-    item = CartItem(
+    cart_item = CartItem(
         user_id=user_id,
         product_id=data["productId"],
-        variant_id=data["variantId"],   # 🔥 REQUIRED
-        color=data["color"],             # 🔥 REQUIRED
+        variant_id=data["variantId"],
         name=data["name"],
+        color=data["color"],
         price=data["price"],
-        quantity=data["quantity"],
-        image=data.get("image")
+        quantity=data["quantity"]
     )
 
-    db.session.add(item)
+    db.session.add(cart_item)
     db.session.commit()
 
     return jsonify({"message": "Added to cart"}), 201
 
 
+# ============================================================
+# GET CART
+# ============================================================
 @cart_bp.get("/")
 @jwt_required()
 def get_cart():
-    user_id = int(get_jwt_identity())
-
+    user_id = get_jwt_identity()
     items = CartItem.query.filter_by(user_id=user_id).all()
 
     return jsonify([
         {
-            "id": item.id,
-            "productId": item.product_id,
-            "variantId": item.variant_id,
-            "color": item.color,
-            "name": item.name,
-            "price": item.price,
-            "quantity": item.quantity,
-            "image": item.image
-        }
-        for item in items
-    ]), 200
-
-
-@cart_bp.delete("/<int:item_id>")
-@jwt_required()
-def remove_item(item_id):
-    CartItem.query.filter_by(id=item_id).delete()
-    db.session.commit()
-
-    return jsonify({"message": "Item removed"}), 200
+            "id": i.id,
+            "product_id": i.product_id,
+            "variant_id": i.variant_id,
+            "name": i.name,
+            "color": i.color,
+            "quantity": i.quantity,
+            "price": i.price
+        } for i in items
+    ])
