@@ -28,12 +28,20 @@ SET AUTH_BASE_URL=http://127.0.0.1:5001
 SET PRODUCT_BASE_URL=http://127.0.0.1:5002
 SET CART_BASE_URL=http://127.0.0.1:5003
 
+
 REM =======================
 REM 👉 LIVE (RENDER)
 REM =======================
 REM SET AUTH_BASE_URL=https://backend-auth-service-6zwi.onrender.com
 REM SET PRODUCT_BASE_URL=https://backend-product-service-ipnq.onrender.com
 REM SET CART_BASE_URL=https://backend-cart-order-service.onrender.com
+
+✅ Quick Sanity Health Checks (OPTIONAL BUT RECOMMENDED):-
+Run these now in your CMD (where vars are set):-
+curl %AUTH_BASE_URL%/api/v1/auth/
+curl %PRODUCT_BASE_URL%/api/v1/products/
+curl %CART_BASE_URL%/
+
 
 ====================================================================
 VARIABLES (FILL DURING FLOW)
@@ -59,6 +67,7 @@ curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/register ^
 -H "Content-Type: application/json" ^
 -d "{\"email\":\"seller@shop.com\",\"password\":\"seller123\",\"role\":\"seller\"}"
 
+
 2️⃣ SELLER LOGIN
 curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/login ^
 -H "Content-Type: application/json" ^
@@ -66,20 +75,52 @@ curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/login ^
 
 REM 👉 COPY access_token → SET SELLER_TOKEN
 
+SET SELLER_TOKEN=
+
 3️⃣ SELLER ADD PRODUCT
-curl -X POST %PRODUCT_BASE_URL%/api/angularProduct/add ^
+curl -X POST %PRODUCT_BASE_URL%/api/v1/products/add ^
 -H "Authorization: Bearer %SELLER_TOKEN%" ^
 -H "Content-Type: application/json" ^
 -d "{\"name\":\"T-Shirt\",\"price\":1000,\"category\":\"Clothing\",\"description\":\"Cotton T-Shirt\"}"
 
+
 REM 👉 COPY product id → SET PRODUCT_ID
 
+SET PRODUCT_ID=
+
 4️⃣ SELLER CHECK PRODUCT
-curl %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
+curl %PRODUCT_BASE_URL%/api/v1/products/%PRODUCT_ID%
+
 
 REM (Assume variants already exist or added via DB / admin:
 REM Black: stock 10
 REM White: stock 5)
+
+
+Add variants (THIS IS REQUIRED BEFORE CART):-
+curl -X POST %PRODUCT_BASE_URL%/api/v1/products/3/variants ^
+-H "Authorization: Bearer %SELLER_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{\"color\":\"Black\",\"stock\":10}"
+
+Then another one:
+curl -X POST %PRODUCT_BASE_URL%/api/v1/products/3/variants ^
+-H "Authorization: Bearer %SELLER_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{\"color\":\"White\",\"stock\":5}"
+
+
+
+
+
+
+# Logout seller:-
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/logout ^
+-H "Authorization: Bearer %SELLER_TOKEN%"
+
+
+
+
 
 ====================================================================
 CUSTOMER 1 FLOW
@@ -97,24 +138,33 @@ curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/login ^
 
 REM 👉 COPY token → SET CUSTOMER1_TOKEN
 
+SET CUSTOMER1_TOKEN=
+
+SET PRODUCT_ID=
+SET VARIANT_BLACK_ID=
+SET VARIANT_WHITE_ID=
+
+===================================
+
+echo %CUSTOMER1_TOKEN%
+echo %PRODUCT_ID%
+echo %VARIANT_BLACK_ID%
+
+
 7️⃣ CUSTOMER-1 ADD TO CART (BLACK × 3)
-curl -X POST %CART_BASE_URL%/api/cart ^
+curl -X POST %CART_BASE_URL%/api/cart/ ^
 -H "Authorization: Bearer %CUSTOMER1_TOKEN%" ^
 -H "Content-Type: application/json" ^
--d "{
-  \"productId\": %PRODUCT_ID%,
-  \"variantId\": %VARIANT_BLACK_ID%,
-  \"color\": \"Black\",
-  \"name\": \"T-Shirt\",
-  \"price\": 1000,
-  \"quantity\": 3
-}"
+-d "{\"productId\":%PRODUCT_ID%,\"variantId\":%VARIANT_BLACK_ID%,\"color\":\"Black\",\"name\":\"T-Shirt\",\"price\":1000,\"quantity\":3}"
+
 
 8️⃣ CUSTOMER-1 CHECKOUT
-curl -X POST %CART_BASE_URL%/api/checkout ^
+curl -X POST %CART_BASE_URL%/api/checkout/ ^
 -H "Authorization: Bearer %CUSTOMER1_TOKEN%" ^
 -H "Content-Type: application/json" ^
 -d "{\"contact\":\"9000000001\",\"address\":\"Address A\",\"total_price\":3000}"
+
+
 
 REM 👉 COPY order_id → SET ORDER1_ID
 

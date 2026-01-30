@@ -42,12 +42,14 @@ def checkout():
         # 1️⃣ PREPARE STOCK PAYLOAD (PRODUCT LEVEL)
         # ----------------------------------------------------
         items_payload = [
-            {
-                "product_id": item.product_id,
-                "quantity": item.quantity
-            }
-            for item in cart_items
-        ]
+    {
+        "product_id": item.product_id,   # ✅ REQUIRED
+        "variant_id": item.variant_id,   # ✅ REQUIRED
+        "quantity": item.quantity
+    }
+    for item in cart_items
+]
+
 
         # ----------------------------------------------------
         # 2️⃣ CALL PRODUCT SERVICE (STOCK SOURCE OF TRUTH)
