@@ -1,0 +1,193 @@
+====================================================================
+REAL-LIFE E-COMMERCE FLOW DEMO
+SELLER + MULTIPLE CUSTOMERS + STOCK RESTORE
+(Auth + Product + Cart Services)
+LOCAL / LIVE
+====================================================================
+
+STORY OVERVIEW:
+1) Seller registers & logs in
+2) Seller creates ONE product with multiple color variants
+3) Customer A registers, logs in, orders product
+4) Stock decreases
+5) Customer B registers, logs in, orders same product
+6) Stock decreases further
+7) Both customers verify remaining stock
+8) Customer A cancels order → stock restored
+9) Customer B cancels order → stock fully restored
+10) Seller verifies stock is back to original
+
+====================================================================
+ENVIRONMENT SWITCH (CHOOSE ONE)
+====================================================================
+
+REM =======================
+REM 👉 LOCAL
+REM =======================
+SET AUTH_BASE_URL=http://127.0.0.1:5001
+SET PRODUCT_BASE_URL=http://127.0.0.1:5002
+SET CART_BASE_URL=http://127.0.0.1:5003
+
+REM =======================
+REM 👉 LIVE (RENDER)
+REM =======================
+REM SET AUTH_BASE_URL=https://backend-auth-service-6zwi.onrender.com
+REM SET PRODUCT_BASE_URL=https://backend-product-service-ipnq.onrender.com
+REM SET CART_BASE_URL=https://backend-cart-order-service.onrender.com
+
+====================================================================
+VARIABLES (FILL DURING FLOW)
+====================================================================
+
+SET SELLER_TOKEN=
+SET CUSTOMER1_TOKEN=
+SET CUSTOMER2_TOKEN=
+
+SET PRODUCT_ID=
+SET VARIANT_BLACK_ID=
+SET VARIANT_WHITE_ID=
+
+SET ORDER1_ID=
+SET ORDER2_ID=
+
+====================================================================
+SELLER FLOW
+====================================================================
+
+1️⃣ SELLER REGISTER
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/register ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"seller@shop.com\",\"password\":\"seller123\",\"role\":\"seller\"}"
+
+2️⃣ SELLER LOGIN
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"seller@shop.com\",\"password\":\"seller123\"}"
+
+REM 👉 COPY access_token → SET SELLER_TOKEN
+
+3️⃣ SELLER ADD PRODUCT
+curl -X POST %PRODUCT_BASE_URL%/api/angularProduct/add ^
+-H "Authorization: Bearer %SELLER_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{\"name\":\"T-Shirt\",\"price\":1000,\"category\":\"Clothing\",\"description\":\"Cotton T-Shirt\"}"
+
+REM 👉 COPY product id → SET PRODUCT_ID
+
+4️⃣ SELLER CHECK PRODUCT
+curl %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
+
+REM (Assume variants already exist or added via DB / admin:
+REM Black: stock 10
+REM White: stock 5)
+
+====================================================================
+CUSTOMER 1 FLOW
+====================================================================
+
+5️⃣ CUSTOMER-1 REGISTER
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/register ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"user1@test.com\",\"password\":\"user123\",\"role\":\"user\"}"
+
+6️⃣ CUSTOMER-1 LOGIN
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"user1@test.com\",\"password\":\"user123\"}"
+
+REM 👉 COPY token → SET CUSTOMER1_TOKEN
+
+7️⃣ CUSTOMER-1 ADD TO CART (BLACK × 3)
+curl -X POST %CART_BASE_URL%/api/cart ^
+-H "Authorization: Bearer %CUSTOMER1_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{
+  \"productId\": %PRODUCT_ID%,
+  \"variantId\": %VARIANT_BLACK_ID%,
+  \"color\": \"Black\",
+  \"name\": \"T-Shirt\",
+  \"price\": 1000,
+  \"quantity\": 3
+}"
+
+8️⃣ CUSTOMER-1 CHECKOUT
+curl -X POST %CART_BASE_URL%/api/checkout ^
+-H "Authorization: Bearer %CUSTOMER1_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{\"contact\":\"9000000001\",\"address\":\"Address A\",\"total_price\":3000}"
+
+REM 👉 COPY order_id → SET ORDER1_ID
+
+====================================================================
+CUSTOMER 2 FLOW
+====================================================================
+
+9️⃣ CUSTOMER-2 REGISTER
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/register ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"user2@test.com\",\"password\":\"user123\",\"role\":\"user\"}"
+
+🔟 CUSTOMER-2 LOGIN
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"user2@test.com\",\"password\":\"user123\"}"
+
+REM 👉 COPY token → SET CUSTOMER2_TOKEN
+
+1️⃣1️⃣ CUSTOMER-2 ADD TO CART (BLACK × 4)
+curl -X POST %CART_BASE_URL%/api/cart ^
+-H "Authorization: Bearer %CUSTOMER2_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{
+  \"productId\": %PRODUCT_ID%,
+  \"variantId\": %VARIANT_BLACK_ID%,
+  \"color\": \"Black\",
+  \"name\": \"T-Shirt\",
+  \"price\": 1000,
+  \"quantity\": 4
+}"
+
+1️⃣2️⃣ CUSTOMER-2 CHECKOUT
+curl -X POST %CART_BASE_URL%/api/checkout ^
+-H "Authorization: Bearer %CUSTOMER2_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{\"contact\":\"9000000002\",\"address\":\"Address B\",\"total_price\":4000}"
+
+REM 👉 COPY order_id → SET ORDER2_ID
+
+====================================================================
+VERIFY STOCK AFTER ORDERS
+====================================================================
+
+1️⃣3️⃣ CHECK PRODUCT STOCK
+curl %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
+
+EXPECTED:
+- Black stock = 10 - 3 - 4 = 3
+
+====================================================================
+CANCEL ORDERS (RESTORE STOCK)
+====================================================================
+
+1️⃣4️⃣ CUSTOMER-1 CANCEL ORDER
+curl -X PATCH %CART_BASE_URL%/api/orders/%ORDER1_ID%/cancel ^
+-H "Authorization: Bearer %CUSTOMER1_TOKEN%"
+
+1️⃣5️⃣ CUSTOMER-2 CANCEL ORDER
+curl -X PATCH %CART_BASE_URL%/api/orders/%ORDER2_ID%/cancel ^
+-H "Authorization: Bearer %CUSTOMER2_TOKEN%"
+
+====================================================================
+FINAL VERIFICATION
+====================================================================
+
+1️⃣6️⃣ SELLER CHECK FINAL STOCK
+curl %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
+
+EXPECTED:
+- Black stock back to original (10)
+- White stock unchanged (5)
+
+====================================================================
+END OF FULL MULTI-USER DEMO FLOW
+====================================================================

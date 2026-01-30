@@ -1,0 +1,164 @@
+====================================================================
+FULL E-COMMERCE BACKEND – CART + ORDER + STOCK INTEGRATION TESTS
+(Auth + Product + Cart Services)
+LOCAL + LIVE (RENDER)
+====================================================================
+
+USAGE INSTRUCTIONS (IMPORTANT):
+1) Choose ENVIRONMENT (LOCAL or LIVE)
+2) Set BASE URLs ONCE
+3) Run commands TOP → BOTTOM
+4) Copy JWT tokens when instructed
+5) Do NOT modify payloads
+
+====================================================================
+🔁 ENVIRONMENT SWITCH (CHOOSE ONE)
+====================================================================
+
+REM =======================
+REM 👉 LOCAL ENVIRONMENT
+REM =======================
+SET AUTH_BASE_URL=http://127.0.0.1:5001
+SET PRODUCT_BASE_URL=http://127.0.0.1:5002
+SET CART_BASE_URL=http://127.0.0.1:5003
+
+REM =======================
+REM 👉 LIVE ENVIRONMENT
+REM =======================
+REM SET AUTH_BASE_URL=https://backend-auth-service-6zwi.onrender.com
+REM SET PRODUCT_BASE_URL=https://backend-product-service-ipnq.onrender.com
+REM SET CART_BASE_URL=https://backend-cart-order-service.onrender.com
+
+====================================================================
+COMMON VARIABLES (SET MANUALLY)
+====================================================================
+
+SET SELLER_TOKEN=PASTE_SELLER_JWT_HERE
+SET CUSTOMER_TOKEN=PASTE_CUSTOMER_JWT_HERE
+SET PRODUCT_ID=PASTE_PRODUCT_ID_HERE
+SET VARIANT_ID=PASTE_VARIANT_ID_HERE
+SET ORDER_ID=PASTE_ORDER_ID_HERE
+
+====================================================================
+AUTH SERVICE
+====================================================================
+
+1️⃣ AUTH HEALTH
+curl %AUTH_BASE_URL%/api/v1/auth/
+
+2️⃣ SELLER REGISTER
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/register ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"seller@test.com\",\"password\":\"seller123\",\"role\":\"seller\"}"
+
+3️⃣ SELLER LOGIN (COPY access_token)
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"seller@test.com\",\"password\":\"seller123\"}"
+
+4️⃣ SELLER PROFILE
+curl -X GET %AUTH_BASE_URL%/api/v1/auth/profile ^
+-H "Authorization: Bearer %SELLER_TOKEN%"
+
+====================================================================
+PRODUCT SERVICE
+====================================================================
+
+5️⃣ PRODUCT HEALTH
+curl %PRODUCT_BASE_URL%/api/angularProduct/health
+
+6️⃣ ADD PRODUCT
+curl -X POST %PRODUCT_BASE_URL%/api/angularProduct/add ^
+-H "Authorization: Bearer %SELLER_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{\"name\":\"Laptop\",\"price\":55000,\"description\":\"Gaming laptop\",\"category\":\"Electronics\"}"
+
+7️⃣ GET ALL PRODUCTS
+curl %PRODUCT_BASE_URL%/api/angularProduct/get
+
+8️⃣ GET SINGLE PRODUCT
+curl %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
+
+====================================================================
+STOCK MANAGEMENT (PRODUCT SERVICE)
+====================================================================
+
+9️⃣ DECREASE STOCK (SIMULATE ORDER)
+curl -X POST %PRODUCT_BASE_URL%/api/v1/products/decrease-stock ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{
+  \"items\": [
+    {
+      \"product_id\": %PRODUCT_ID%,
+      \"quantity\": 2
+    }
+  ]
+}"
+
+🔟 VERIFY STOCK DECREASE
+curl %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
+
+====================================================================
+CART SERVICE
+====================================================================
+
+1️⃣1️⃣ ADD TO CART
+curl -X POST %CART_BASE_URL%/api/cart ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{
+  \"productId\": %PRODUCT_ID%,
+  \"variantId\": %VARIANT_ID%,
+  \"color\": \"Black\",
+  \"name\": \"Laptop\",
+  \"price\": 55000,
+  \"quantity\": 2
+}"
+
+1️⃣2️⃣ VIEW CART
+curl -X GET %CART_BASE_URL%/api/cart ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+====================================================================
+CHECKOUT (ORDER PLACEMENT)
+====================================================================
+
+1️⃣3️⃣ CHECKOUT
+curl -X POST %CART_BASE_URL%/api/checkout ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{
+  \"contact\": \"9999999999\",
+  \"address\": \"Test Address\",
+  \"total_price\": 110000
+}"
+
+REM ⬆ COPY order_id → SET ORDER_ID
+
+====================================================================
+ORDER VERIFICATION
+====================================================================
+
+1️⃣4️⃣ GET MY ORDERS
+curl -X GET %CART_BASE_URL%/api/orders ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+1️⃣5️⃣ GET ORDER DETAILS
+curl -X GET %CART_BASE_URL%/api/orders/%ORDER_ID% ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+====================================================================
+CANCEL / RESTORE STOCK
+====================================================================
+
+1️⃣6️⃣ CANCEL ORDER (RESTORES STOCK)
+curl -X PATCH %CART_BASE_URL%/api/orders/%ORDER_ID%/cancel ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+1️⃣7️⃣ VERIFY STOCK RESTORED
+curl %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
+
+====================================================================
+END OF CART + ORDER + STOCK TEST FILE
+====================================================================
