@@ -1,0 +1,171 @@
+====================================================================
+FULL E-COMMERCE BACKEND – CART + ORDER FLOW (FINAL)
+Customer → Cart → Checkout → Stock Decrease → Cancel → Stock Restore
+(Auth + Product + Cart/Order Services)
+====================================================================
+
+IMPORTANT RULES:
+1) Run commands TOP → BOTTOM only
+2) Never guess IDs – always copy from responses
+3) Variant stock is SOURCE OF TRUTH
+4) Cart does NOT manage stock – Product Service does
+5) This file proves Cart ↔ Product integration
+
+====================================================================
+ENVIRONMENT (LOCAL)
+====================================================================
+
+SET AUTH_BASE_URL=http://127.0.0.1:5001
+SET PRODUCT_BASE_URL=http://127.0.0.1:5002
+SET CART_BASE_URL=http://127.0.0.1:5003
+
+====================================================================
+SANITY HEALTH CHECKS
+====================================================================
+
+curl %AUTH_BASE_URL%/api/v1/auth/
+curl %PRODUCT_BASE_URL%/api/v1/products/
+curl %CART_BASE_URL%/
+
+====================================================================
+CUSTOMER LOGIN
+====================================================================
+
+--------------------------------------------------
+1) CUSTOMER LOGIN
+--------------------------------------------------
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"user1@test.com\",\"password\":\"user123\"}"
+
+SET CUSTOMER_TOKEN=PASTE_CUSTOMER_TOKEN_HERE
+
+--------------------------------------------------
+2) CUSTOMER PROFILE VERIFY
+--------------------------------------------------
+curl -X GET %AUTH_BASE_URL%/api/v1/auth/profile ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+====================================================================
+PRODUCT VERIFICATION (READ-ONLY)
+====================================================================
+
+--------------------------------------------------
+3) VIEW PRODUCT (BEFORE ORDER)
+--------------------------------------------------
+curl %PRODUCT_BASE_URL%/api/v1/products/%PRODUCT_ID%
+
+EXPECTED:
+- Variant Black stock = 10
+
+====================================================================
+CART FLOW
+====================================================================
+
+--------------------------------------------------
+4) ADD ITEM TO CART
+--------------------------------------------------
+curl -X POST %CART_BASE_URL%/api/cart/ ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{
+  \"productId\": %PRODUCT_ID%,
+  \"variantId\": %VARIANT_BLACK_ID%,
+  \"color\": \"Black\",
+  \"name\": \"T-Shirt\",
+  \"price\": 1000,
+  \"quantity\": 3
+}"
+
+EXPECTED:
+- Added to cart
+
+--------------------------------------------------
+5) VIEW CART
+--------------------------------------------------
+curl %CART_BASE_URL%/api/cart ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+EXPECTED:
+- Item present
+- quantity = 3
+
+====================================================================
+CHECKOUT → STOCK DECREASE
+====================================================================
+
+--------------------------------------------------
+6) CHECKOUT (PLACE ORDER)
+--------------------------------------------------
+curl -X POST %CART_BASE_URL%/api/checkout/ ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{
+  \"contact\": \"9000000001\",
+  \"address\": \"Address A\",
+  \"total_price\": 3000
+}"
+
+EXPECTED:
+- Order placed successfully
+- Cart cleared
+- Product Service called:
+  POST /api/v1/products/decrease-stock
+
+====================================================================
+VERIFY STOCK AFTER ORDER
+====================================================================
+
+--------------------------------------------------
+7) VERIFY PRODUCT STOCK
+--------------------------------------------------
+curl %PRODUCT_BASE_URL%/api/v1/products/%PRODUCT_ID%
+
+EXPECTED:
+- Variant Black stock = 7
+
+====================================================================
+ORDER MANAGEMENT
+====================================================================
+
+--------------------------------------------------
+8) VIEW CUSTOMER ORDERS
+--------------------------------------------------
+curl %CART_BASE_URL%/api/orders ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+SET ORDER_ID=PASTE_ORDER_ID_HERE
+
+--------------------------------------------------
+9) CANCEL ORDER
+--------------------------------------------------
+curl -X PATCH %CART_BASE_URL%/api/orders/%ORDER_ID%/cancel ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+EXPECTED:
+- Order status = CANCELLED
+- Product Service called:
+  POST /api/v1/products/restore-stock
+
+====================================================================
+VERIFY STOCK AFTER CANCEL
+====================================================================
+
+--------------------------------------------------
+10) VERIFY PRODUCT STOCK RESTORED
+--------------------------------------------------
+curl %PRODUCT_BASE_URL%/api/v1/products/%PRODUCT_ID%
+
+EXPECTED:
+- Variant Black stock = 10
+
+====================================================================
+END OF CART / ORDER FLOW
+====================================================================
+
+✔ Cart does not manage stock
+✔ Checkout triggers stock decrease
+✔ Cancel triggers stock restore
+✔ Product Service is source of truth
+✔ Fully aligned with feature/stock-cart-order-flow
+✔ Ready for multi-user & Angular integration
