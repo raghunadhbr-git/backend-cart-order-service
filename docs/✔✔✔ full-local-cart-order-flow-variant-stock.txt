@@ -116,7 +116,7 @@ REM ORDER CANCEL + STOCK RESTORE
 REM ============================================================
 
 REM --- GET CUSTOMER ORDERS ---
-curl %CART_BASE_URL%/api/orders ^
+curl %CART_BASE_URL%/api/orders/ ^
 -H "Authorization: Bearer %CUSTOMER_TOKEN%"
 
 REM ⬇ COPY order_id
