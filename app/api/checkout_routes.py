@@ -4,97 +4,73 @@ import requests
 import os
 
 from ..extensions import db
-from ..models.cart import CartItem
-from ..models.order import Order, OrderItem
+from ..models.cart_item import CartItem
+from ..models.order import Order
+from ..models.order_item import OrderItem   # ✅ CORRECT
 
 checkout_bp = Blueprint("checkout", __name__)
 
-PRODUCT_BASE_URL = os.getenv("PRODUCT_BASE_URL", "http://127.0.0.1:5002")
+PRODUCT_BASE_URL = os.getenv(
+    "PRODUCT_BASE_URL",
+    "http://127.0.0.1:5002"
+)
 
-
-# ============================================================
-# CHECKOUT → PLACE ORDER → DECREASE STOCK
-# ============================================================
 @checkout_bp.post("/")
 @jwt_required()
 def checkout():
     user_id = get_jwt_identity()
     data = request.get_json()
 
-    contact = data.get("contact")
-    address = data.get("address")
-    total_price = data.get("total_price")
-
-    if not contact or not address:
-        return jsonify({"error": "Missing contact or address"}), 400
-
     cart_items = CartItem.query.filter_by(user_id=user_id).all()
 
     if not cart_items:
         return jsonify({"error": "Cart is empty"}), 400
 
-    # --------------------------------------------------
-    # BUILD STOCK DECREASE PAYLOAD
-    # --------------------------------------------------
-    stock_payload = {
+    payload = {
         "items": [
             {
-                "product_id": item.product_id,
-                "variant_id": item.variant_id,
-                "quantity": item.quantity
+                "product_id": c.product_id,
+                "variant_id": c.variant_id,
+                "quantity": c.quantity
             }
-            for item in cart_items
+            for c in cart_items
         ]
     }
 
-    # --------------------------------------------------
-    # CALL PRODUCT SERVICE (DECREASE STOCK)
-    # --------------------------------------------------
-    product_resp = requests.post(
+    resp = requests.post(
         f"{PRODUCT_BASE_URL}/api/v1/products/decrease-stock",
-        json=stock_payload,
+        json=payload,
         headers={
             "Authorization": request.headers.get("Authorization")
         }
     )
 
-    if product_resp.status_code != 200:
-        return jsonify({
-            "error": "Insufficient stock or product service error"
-        }), 400
+    if resp.status_code != 200:
+        return jsonify({"error": "Insufficient stock"}), 400
 
-    # --------------------------------------------------
-    # CREATE ORDER
-    # --------------------------------------------------
     order = Order(
         user_id=user_id,
-        total_price=total_price,
-        status="placed",
-        contact=contact,
-        address=address
+        total_price=sum(c.price * c.quantity for c in cart_items),
+        contact=data["contact"],
+        address=data["address"]
     )
 
     db.session.add(order)
-    db.session.flush()  # get order.id
+    db.session.flush()
 
-    # --------------------------------------------------
-    # CREATE ORDER ITEMS
-    # --------------------------------------------------
-    for item in cart_items:
-        order_item = OrderItem(
+    for c in cart_items:
+        db.session.add(OrderItem(
             order_id=order.id,
-            product_id=item.product_id,
-            variant_id=item.variant_id,
-            quantity=item.quantity,
-            price=item.price
-        )
-        db.session.add(order_item)
-        db.session.delete(item)  # clear cart
+            product_id=c.product_id,
+            variant_id=c.variant_id,
+            quantity=c.quantity,
+            price=c.price
+        ))
+        db.session.delete(c)
 
     db.session.commit()
 
     return jsonify({
         "order_id": order.id,
-        "status": "placed",
-        "message": "Order placed successfully"
+        "status": "placed"
     }), 201

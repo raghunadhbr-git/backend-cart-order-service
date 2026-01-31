@@ -1,8 +1,8 @@
-"""initial cart and order schema with variants
+"""init cart order schema
 
-Revision ID: bb9664b1eb45
+Revision ID: d97900547cb5
 Revises: 
-Create Date: 2026-01-20 16:04:26.845567
+Create Date: 2026-01-31 12:21:19.534624
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'bb9664b1eb45'
+revision = 'd97900547cb5'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -23,11 +23,10 @@ def upgrade():
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('product_id', sa.Integer(), nullable=False),
     sa.Column('variant_id', sa.Integer(), nullable=False),
-    sa.Column('color', sa.String(length=50), nullable=False),
     sa.Column('name', sa.String(length=200), nullable=False),
+    sa.Column('color', sa.String(length=50), nullable=False),
     sa.Column('price', sa.Float(), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=False),
-    sa.Column('image', sa.String(length=500), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
@@ -36,11 +35,8 @@ def upgrade():
     sa.Column('order_id', sa.Integer(), nullable=False),
     sa.Column('product_id', sa.Integer(), nullable=False),
     sa.Column('variant_id', sa.Integer(), nullable=False),
-    sa.Column('color', sa.String(length=50), nullable=False),
-    sa.Column('name', sa.String(length=200), nullable=False),
-    sa.Column('price', sa.Float(), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=False),
-    sa.Column('image', sa.String(length=500), nullable=True),
+    sa.Column('price', sa.Float(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('orders',
@@ -50,6 +46,7 @@ def upgrade():
     sa.Column('address', sa.String(length=500), nullable=False),
     sa.Column('total_price', sa.Float(), nullable=False),
     sa.Column('status', sa.String(length=20), nullable=True),
+    sa.Column('stock_restored', sa.Boolean(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
