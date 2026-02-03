@@ -12,12 +12,12 @@ cart_bp = Blueprint("cart", __name__)
 @jwt_required()
 def add_to_cart():
     user_id = get_jwt_identity()
-    data = request.get_json()
+    data = request.get_json() or {}
 
     item = CartItem(
         user_id=user_id,
-        product_id=data["productId"],
-        variant_id=data["variantId"],
+        product_id=data["product_id"],     # ✅ FIXED
+        variant_id=data["variant_id"],     # ✅ FIXED
         name=data["name"],
         color=data["color"],
         price=data["price"],
@@ -31,7 +31,7 @@ def add_to_cart():
 
 
 # ============================================================
-# GET CART (✅ THIS WAS MISSING)
+# GET CART
 # ============================================================
 @cart_bp.get("/")
 @jwt_required()

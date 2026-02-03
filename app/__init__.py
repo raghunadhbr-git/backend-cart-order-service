@@ -11,6 +11,9 @@ def create_app(testing=False):
     app = Flask(__name__)
     app.config.from_object(Config)
 
+    # ✅ ADD THIS LINE
+    app.url_map.strict_slashes = False
+
     if testing:
         app.config.update(
             TESTING=True,
