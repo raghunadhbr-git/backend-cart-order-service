@@ -21,7 +21,12 @@ def create_app(testing=False):
             JWT_SECRET_KEY="test-secret"
         )
 
-    CORS(app)
+    CORS(
+    app,
+    resources={r"/api/*": {"origins": "*"}},
+    supports_credentials=True
+)
+
 
     db.init_app(app)
     migrate.init_app(app, db)

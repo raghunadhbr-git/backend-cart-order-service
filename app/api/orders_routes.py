@@ -1,13 +1,15 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_cors import CORS
 import requests
 import os
 
 from ..extensions import db
 from ..models.order import Order
-from ..models.order_item import OrderItem   # ✅ CORRECT IMPORT
+from ..models.order_item import OrderItem
 
 orders_bp = Blueprint("orders", __name__)
+CORS(orders_bp)  # 🔥 IMPORTANT FIX — enables OPTIONS on /<id>
 
 PRODUCT_BASE_URL = os.getenv(
     "PRODUCT_BASE_URL",
@@ -15,7 +17,7 @@ PRODUCT_BASE_URL = os.getenv(
 )
 
 # ============================================================
-# GET ORDERS
+# GET ALL ORDERS
 # ============================================================
 @orders_bp.get("/")
 @jwt_required()
@@ -32,6 +34,38 @@ def get_orders():
         }
         for o in orders
     ]), 200
+
+
+# ============================================================
+# GET SINGLE ORDER (DETAILS)
+# ============================================================
+@orders_bp.get("/<int:order_id>")
+@jwt_required()
+def get_order_details(order_id):
+    user_id = get_jwt_identity()
+
+    order = Order.query.filter_by(
+        id=order_id,
+        user_id=user_id
+    ).first_or_404()
+
+    items = OrderItem.query.filter_by(order_id=order.id).all()
+
+    return jsonify({
+        "order_id": order.id,
+        "status": order.status,
+        "total_price": order.total_price,
+        "created_at": order.created_at,
+        "items": [
+            {
+                "product_id": i.product_id,
+                "variant_id": i.variant_id,
+                "quantity": i.quantity,
+                "price": i.price
+            }
+            for i in items
+        ]
+    }), 200
 
 
 # ============================================================
