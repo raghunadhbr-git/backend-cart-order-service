@@ -1,0 +1,41 @@
+PROJECT: Cart & Order Service (Flask)
+BRANCH: feature/cart-order-service
+
+====================================
+CART & ORDER SERVICE GIT WORKFLOW
+====================================
+
+1. Checkout feature branch
+   git checkout feature/cart-order-service
+
+2. Verify changes
+   git status
+
+3. Stage all
+   git add .
+
+4. Commit cart/order changes
+   git commit -m "feat: cart checkout order flow completed"
+
+5. Push branch
+   git push origin feature/cart-order-service
+
+====================================
+FEATURES COMPLETED
+====================================
+
+- Cart add/remove items
+- Checkout flow
+- Order creation
+- Order listing
+- Order details
+- Product service integration
+
+====================================
+MERGE NOTE
+====================================
+
+Cart & Order service is COMPLETE.
+
+Merge command:
+git merge feature/cart-order-service
