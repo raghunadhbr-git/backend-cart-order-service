@@ -4,7 +4,7 @@ pip install psycopg2-binary
 After running:
 pip freeze > requirements.txt
 
-Your requirements.txt now includes (among others):
+Your requirements.txt now includes (among others): 
 
 backend-auth-service
 Raghunadh_1992
@@ -109,7 +109,7 @@ flask db upgrade
 Remove-Item Env:DATABASE_URL
 
 ✅ Render Environment Variable
-DATABASE_URL = postgresql://postgres.ksanxiytoasusnncnarw:Raghunadh_1992@aws-1-ap-south-1.pooler.supabase.com:5432/postgres
+DATABASE_URL = postgresql://postgres.muzlhaasuaejciaumawj:Raghunadh_1992@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
 
 
 
