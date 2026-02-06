@@ -1,0 +1,114 @@
+===============================================================================
+FINAL CORRECTED DOCKER CI/CD FLOW (GITHUB → DOCKER HUB → RENDER)
+===============================================================================
+
+THIS IS THE CORRECT, INDUSTRY-STANDARD FLOW.
+THIS IS WHAT GITHUB ACTIONS ACTUALLY DOES.
+
+-------------------------------------------------------------------------------
+SOURCE OF TRUTH
+-------------------------------------------------------------------------------
+- GitHub repository (main branch)
+- Contains:
+  - Application code
+  - Dockerfile
+  - GitHub Actions workflow
+- Docker Hub is NOT the source of truth
+- Docker Hub only stores built images
+
+-------------------------------------------------------------------------------
+STEP 1: CODE CHANGE
+-------------------------------------------------------------------------------
+Example:
+- Developer updates backend code OR Dockerfile OR workflow
+- Developer commits and pushes to main branch
+
+-------------------------------------------------------------------------------
+STEP 2: CI TRIGGER (GITHUB ACTIONS)
+-------------------------------------------------------------------------------
+- Push to main OR cron schedule triggers GitHub Actions
+- GitHub Actions checks out the LATEST main branch code
+
+IMPORTANT:
+GitHub Actions ALWAYS builds Docker images FROM:
+- Repo code
+- Repo Dockerfile
+
+It NEVER pulls an image from Docker Hub to rebuild.
+
+-------------------------------------------------------------------------------
+STEP 3: CI STAGE – BUILD & PUSH IMAGE
+-------------------------------------------------------------------------------
+Example (automated inside pipeline):
+
+- Docker image is built using Dockerfile in repo
+- Image is tagged (example):
+  - service-name:latest
+  - service-name:<commit-sha>
+- GitHub Actions logs in to Docker Hub using GitHub Secrets
+- Newly built image is PUSHED to Docker Hub
+
+At this point:
+- Docker Hub now has the NEW image
+- Image exactly matches latest main branch code
+
+-------------------------------------------------------------------------------
+STEP 4: CD STAGE – DEPLOYMENT
+-------------------------------------------------------------------------------
+- Same GitHub Actions workflow continues
+- It triggers Render Deploy Hook (via secret URL)
+
+Render behavior:
+- Render pulls the LATEST image from Docker Hub
+- Stops old container
+- Starts new container using the new image
+
+NO manual action needed if deploy hook is configured.
+
+-------------------------------------------------------------------------------
+STEP 5: POST-DEPLOY (OPTIONAL)
+-------------------------------------------------------------------------------
+- After successful deployment:
+  - GitHub Actions can send email / Slack / notification
+- This is just a notification step
+- It does NOT affect build or deploy logic
+
+-------------------------------------------------------------------------------
+STEP 6: CRON / SCHEDULED PIPELINE (OPTIONAL)
+-------------------------------------------------------------------------------
+- Cron does NOT pull images from Docker Hub
+- Cron triggers the SAME workflow:
+  - Checkout repo
+  - Build image from Dockerfile
+  - Push image to Docker Hub
+  - Trigger Render deployment
+
+Used for:
+- Security rebuilds
+- Dependency refresh
+- Stability checks
+
+-------------------------------------------------------------------------------
+WHAT DOES NOT HAPPEN (VERY IMPORTANT)
+-------------------------------------------------------------------------------
+- CI does NOT pull images from Docker Hub
+- CI does NOT rebuild existing images
+- Docker Hub images are NEVER modified
+- Repo code + Dockerfile is ALWAYS the input
+
+-------------------------------------------------------------------------------
+FINAL ONE-LINE TRUTH (MEMORIZE THIS)
+-------------------------------------------------------------------------------
+CI builds Docker images FROM GitHub.
+CD deploys Docker images FROM Docker Hub.
+
+-------------------------------------------------------------------------------
+RESUME-READY STATEMENT
+-------------------------------------------------------------------------------
+"Implemented Docker-based CI/CD using GitHub Actions where each push to main
+builds Docker images from source code, pushes them to Docker Hub, and triggers
+automated deployments to Render using deploy hooks and secrets."
+
+===============================================================================
+END OF FILE
+===============================================================================
