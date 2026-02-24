@@ -70,7 +70,15 @@ Go to Railway Dashboard
 
 In Image URL field paste:
 
-docker.io/pythoncodelife/backend-cart-order-service:v1.0.0
+//But Railway not deploying, right?
+//That usually means one of these 3 problems.
+//docker.io/pythoncodelife/backend-cart-order-service:v1.0.0
+
+// This is working now:- (4th Stesp finallized okay)
+⚠️ Remove docker.io/
+
+Railway automatically assumes Docker Hub.
+pythoncodelife/backend-cart-order-service:v1.0.0
 
 Click:
 👉 Deploy
