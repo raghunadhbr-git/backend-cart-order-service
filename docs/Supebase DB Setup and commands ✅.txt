@@ -35,7 +35,7 @@ It will look like this 👇
 
 # URI:-
 # Method: Session pooler
-postgresql://postgres.muzlhaasuaejciaumawj:[YOUR-PASSWORD]@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
+postgresql://postgres.muzlhaasuaejciaumawj:Raghunadh_1992@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
 
 
 This is the ONLY URL you need everywhere.
