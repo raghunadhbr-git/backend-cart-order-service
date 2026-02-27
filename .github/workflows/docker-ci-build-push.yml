@@ -22,18 +22,18 @@ jobs:
     env:
       IMAGE_NAME: pythoncodelife/backend-cart-order-service
       IMAGE_TAG: latest
-      LIVE_URL: https://YOUR-CART-LIVE-URL.up.railway.app/
+      LIVE_URL: https://backend-cart-order-service-production.up.railway.app/
 
     steps:
 
       # =====================================================
-      # CHECKOUT
+      # CHECKOUT SOURCE
       # =====================================================
       - name: 🧾 Checkout source code
         uses: actions/checkout@v4
 
       # =====================================================
-      # BUILD TIMESTAMPS
+      # GENERATE BUILD TIMESTAMPS
       # =====================================================
       - name: ⏱️ Generate build timestamps (UTC + IST)
         run: |
@@ -53,7 +53,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # =====================================================
-      # BUILD & PUSH IMAGE
+      # BUILD & PUSH DOCKER IMAGE
       # =====================================================
       - name: 🏗️ Build & Push Docker Image
         uses: docker/build-push-action@v5
@@ -100,7 +100,7 @@ jobs:
             }'
 
       # =====================================================
-      # EMAIL – DEPLOY SUCCESS
+      # EMAIL – DEPLOYMENT SUCCESS
       # =====================================================
       - name: 📧 Deployment Success Email
         if: success()
