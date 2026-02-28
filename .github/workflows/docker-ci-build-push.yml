@@ -11,9 +11,9 @@ on:
 
   workflow_dispatch:
 
-  # Daily at 2:00 AM IST (20:30 UTC)
+  # Daily at 3:00 AM IST (9:30 PM UTC)
   schedule:
-    - cron: "30 20 * * *"
+    - cron: "30 21 * * *"  # 9:30 PM UTC = 3:00 AM IST
 
 jobs:
   ci-cd-backend-cart:
