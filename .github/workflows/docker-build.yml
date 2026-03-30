@@ -1,0 +1,56 @@
+# ============================================================
+# 🚀 CI - Build & Push Docker Image (backend-cart-order-service)
+# ============================================================
+
+# ============================================================
+# 🚀 CI - Build & Push Docker Image (backend-cart-order-service)
+# ============================================================
+
+name: 🚀 Build & Push backend-cart-order-service Image (Manual)
+
+on:
+  workflow_dispatch:   # 🔥 ONLY manual trigger
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # ==============================
+      # Step 1: Checkout Code
+      # ==============================
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v3
+
+      # ==============================
+      # Step 2: Login to Docker Hub
+      # ==============================
+      - name: 🔐 Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # ==============================
+      # Step 3: Build Docker Image
+      # ==============================
+      - name: 🐳 Build Docker Image
+        run: |
+          docker build -t pythoncodelife/backend-cart-order-service:latest .
+
+      # ==============================
+      # Step 4: Push Docker Image
+      # ==============================
+      - name: 📤 Push Docker Image
+        run: |
+          docker push pythoncodelife/backend-cart-order-service:latest
+
+      # ==============================
+      # Step 5: Info (for clarity)
+      # ==============================
+      - name: ℹ️ Image Info
+        run: |
+          echo "✅ Image pushed successfully"
+          echo "👉 Railway pulls this:"
+          echo "docker pull docker.io/pythoncodelife/backend-cart-order-service:latest"
