@@ -38,7 +38,7 @@ def create_app(testing=False):
 
     @app.get("/")
     def health():
-        return jsonify({"status": "Cart-Order-Service UP"}), 200
+        return jsonify({"status": "Cart-Order-Service-UP"}), 200
 
     return app
 
