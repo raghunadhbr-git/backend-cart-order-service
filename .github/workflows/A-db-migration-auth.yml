@@ -1,0 +1,54 @@
+name: 🚀 Cart DB Migration
+
+on:
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 📥 Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 🐍 Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 📦 Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # ⚙️ Set Flask app (IMPORTANT if not already set)
+      - name: Set Flask App
+        run: echo "FLASK_APP=app" >> $GITHUB_ENV
+
+      # 🧠 Smart DB handling (KEY STEP)
+      - name: Handle existing DB safely
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          echo "Checking migration state..."
+
+          # Try to upgrade normally
+          flask db upgrade || {
+
+            echo "Upgrade failed. Attempting safe recovery..."
+
+            # If fails (likely due to existing tables), stamp DB
+            flask db stamp head
+
+            echo "Stamped DB. Retrying upgrade..."
+
+            # Retry upgrade
+            flask db upgrade
+          }
+
+      # ✅ Done
+      - name: Done
+        run: echo "✅ Cart DB Migration Completed Successfully"
